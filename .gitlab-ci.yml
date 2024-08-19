@@ -1,0 +1,107 @@
+variables:
+  GITLAB_URL: "${CI_SERVER_URL}"
+  GITLAB_API_URL: "${CI_API_V4_URL}"
+  CHECKMARX_DOCKER_IMAGE: "cx-flow:1.6.25-11"
+  CX_FLOW_BUG_TRACKER: "GitLab"
+  CX_FLOW_BUG_TRACKER_IMPL: ${CX_FLOW_BUG_TRACKER}
+  CX_FLOW_EXE: "java -jar /app/cx-flow.jar"
+  CX_PROJECT: "$CI_PROJECT_NAME-$CI_COMMIT_REF_NAME"
+  CHECKMARX_VERSION: "9.0"
+  CHECKMARX_SETTINGS_OVERRIDE: "false"
+  CHECKMARX_EXCLUDE_FILES: ""
+  CHECKMARX_EXCLUDE_FOLDERS: ""
+  CHECKMARX_CONFIGURATION: "Default Configuration"
+  CHECKMARX_SCAN_PRESET: "Checkmarx Default"
+  CX_FLOW_FILTER_SEVERITY: "High"
+  CX_FLOW_FILTER_CATEGORY: ""
+  CX_FLOW_FILTER_CWE: ""
+  CX_FLOW_FILTER_STATUS: ""
+  CX_FLOW_FILTER_STATE: ""
+  CX_FLOW_ENABLED_VULNERABILITY_SCANNERS: "sca"
+  CX_FLOW_CONFIG_LOCATION: "application.yml"
+  CX_FLOW_ZIP_EXCLUDE: ".jar"
+  CX_TEAM: "/CxServer/SP/APAC/vncs.vn-581"
+  CX_FLOW_BREAK_BUILD: "false"
+  SCA_FILTER_SEVERITY: ""
+  SCA_FILTER_SCORE: ""
+  SCA_THRESHOLDS_SCORE: ""
+  SCA_TEAM: ""
+  GITLAB_BLOCK_MERGE: "false"
+  GITLAB_ERROR_MERGE: "false"
+  SECURITY_DASHBOARD_ON_MR: "false"
+  CHECKMARX_INCREMENTAL: "true"
+  REGISTRY_URL: "docker.io"
+  IMAGE: "${DOCKER_REGISTRY_USERNAME}/${CI_PROJECT_NAME}"
+  LATEST_IMAGE_TAG: "${REGISTRY_URL}/${IMAGE}:latest"
+  CHART_FOLDER: 'helm-chart'
+  APP_NAME: "easybuggy"
+
+stages:
+  - test
+  - build
+  - deploy
+  - review
+  - staging
+  - production
+  - cleanup
+
+
+sast-scan:
+  stage: test
+  rules:
+    - if: '$CX_FLOW_BUG_TRACKER == "GitLab" && $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+  image:
+    name: checkmarx/${CHECKMARX_DOCKER_IMAGE}
+    entrypoint: ['']
+  script:
+    - ${CX_FLOW_EXE}
+      --scan 
+      --app="${CI_PROJECT_NAME}" 
+      --namespace="${CI_PROJECT_NAMESPACE}" 
+      --repo-name="${CI_PROJECT_NAME}" 
+      --repo-url="${CI_REPOSITORY_URL}" 
+      --cx-team="${CX_TEAM}" 
+      --cx-project="${CX_PROJECT}" 
+      --branch="${CI_COMMIT_BRANCH}"
+      --spring.profiles.active="${CX_FLOW_ENABLED_VULNERABILITY_SCANNERS}" 
+      --f=.
+
+iac-scan:
+  stage: test
+  image:
+    name: checkmarx/kics:latest
+    entrypoint: ['']
+  script:
+    - kics scan -m -q /app/bin/assets/queries -p ${PWD} -o ${PWD} --ignore-on-exit all --report-formats glsast --log-level DEBUG --fail-on high
+    - ls -lah
+  artifacts:
+    reports:
+      sast: gl-sast-results.json
+    paths:
+    - gl-sast-results.json
+    expire_in: 20 minutes
+    when: always
+
+
+mvn-build:
+  stage: build
+  image:
+    name: maven:3.6.3-jdk-8
+  script:
+    - mvn clean test package
+  artifacts:
+    name: target
+    expire_in: 20 minutes
+    paths:
+    - target
+  
+podman-build:
+  stage: build
+  needs: [mvn-build]
+  image:
+    name: quay.io/podman/stable
+  script:
+    - | 
+      podman login -u "${DOCKER_REGISTRY_USERNAME}" -p "${DOCKER_REGISTRY_PASSWORD}" ${REGISTRY_URL}
+      podman build --format docker -t ${LATEST_IMAGE_TAG} .
+      podman push ${LATEST_IMAGE_TAG}

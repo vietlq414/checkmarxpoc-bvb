@@ -1,0 +1,149 @@
+trigger:
+  - main
+pool:
+  name: Azure Pipelines
+  vmImage: ubuntu-latest
+stages:
+# - stage: 
+#   displayName: Build Stage
+#   jobs:
+#     - job:
+#       displayName: Execute MVN Build
+#       steps:      
+#         - script: | 
+#             mvn clean install
+#           displayName: Run MVN Clean Install
+- stage: "ScanStage"
+  jobs:
+    - job: "PrepareScan"
+      steps:
+        - script: |
+            sudo apt install wget  openjdk-11-jdk curl wget gnupg2 -y
+          displayName: Install Environment
+          
+        - script: |
+            curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
+            sudo chmod 700 get_helm.sh
+            sudo ./get_helm.sh
+          displayName: Install helm chart
+
+        - script: |
+            source /etc/os-release
+            sudo sh -c "echo 'deb http://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_${VERSION_ID}/ /' > /etc/apt/sources.list.d/devel:kubic:libcontainers:stable.list"
+            sudo wget -nv https://download.opensuse.org/repositories/devel:kubic:libcontainers:stable/xUbuntu_${VERSION_ID}/Release.key -O- | apt-key add -
+            sudo apt-get update -qq -y
+            sudo apt-get -qq --yes install podman buildah             
+          displayName: Install Podman
+
+    - job: "SecurityScan"
+      steps:
+        - script: |
+            wget https://github.com/checkmarx-ltd/cx-flow/releases/download/1.6.25/cx-flow-1.6.25-java11.jar
+          displayName: Download CxFlow   
+
+        - script: | 
+            sudo java -jar cx-flow-1.6.25-java11.jar  \
+            --spring.config.location="application.yml" \
+            --scan \
+            --cx-project="cx-flow-demo" \
+            --app="cx-flow-demo" \
+            --branch="main" \
+            --repo-name="cx-flow-demo" \
+            --namespace="security" \
+            --cx-flow.break-build="false" \
+            --cx-team="CxServer/SP/APAC/vncs.vn-581" \
+            --f="."
+          displayName: Run CxFlow Scan
+# - stage:
+#   displayName: "Scan Stage"
+#   variables:
+#     - group: Acunetix
+#     - group: Tenable
+#   jobs:
+#     - job:
+#       container: # inline container specification
+#         image: checkmarx/cx-flow:latest
+#       displayName: "Execute Security Scan Job"
+#       steps:
+#         - script: | 
+#             java -Xms512m -Xmx1024m \
+#               -Djava.security.egd="file:/dev/./urandom" \
+#               -Djavax.net.debug=ssl,handshake \
+#               -jar /app/cx-flow.jar --spring.config.location=./application.yml \
+#               --scan \
+#               --cx-project="cx-demo-webgoat" \
+#               --app="cx-demo-webgoat-master" \
+#               --branch="master" \
+#               --repo-name="cx-demo-webgoat" \
+#               --namespace="security" \
+#               --cx-flow.break-build="true" \
+#               --f=.
+#           displayName: "Run CxFlow Step"
+          
+#         - script: |
+#             curl -k -i --request POST --url "$(acunetix_scan_url)" \
+#             --header "X-Auth: $(vietlq_api_key)" \
+#             --header "content-type: application/json" \
+#             --data '{
+#               "profile_id":"$(sqli_scan_id)",
+#               "schedule":{
+#                  "disable":false,
+#                  "start_date":null,
+#                  "time_sensitive":false
+#               },
+#               "user_authorized_to_scan":"yes",
+#               "target_id":"$(target_id)"
+#               }'
+#           displayName: "Run Acunetix Step"
+#         - script: |
+#             token=$(curl -s -k -X POST -d '{"username":"$(security_account)","password":"$(security_password)"}' \
+#             -c sc_cookie.txt \
+#             --url https://e68c-117-6-79-78.ngrok.io/rest/token \
+#             | awk -F',' '{print $7}' | awk -F':' '{print $2}')
+
+#             curl -k -i -X POST -b sc_cookie.txt --url https://e68c-117-6-79-78.ngrok.io/rest/scan \
+#             -H 'X-SecurityCenter: '"$token"'' \
+#             -H 'Content-Type: application/json' \
+#             -H 'Accept: application/json' \
+#             --data-raw '
+#             {
+#                 "name": "Remediation Scan API",
+#                 "description": "Remediation Scan API",
+#                 "context": "",
+#                 "createdTime": 0,
+#                 "modifiedTime": 0,
+#                 "groups": [],
+#                 "repository": {
+#                     "id": 1
+#                 },
+#                 "zone" : {
+#                 "id" : 1
+#               },
+#                 "schedule": {
+#                     "start": "TZID=Asia/Ho_Chi_Minh",
+#                     "repeatRule": "FREQ=NOW;INTERVAL=1",
+#                     "type": "now"
+#                 },
+#                 "dhcpTracking": "true",
+#                 "emailOnLaunch": "true",
+#                 "emailOnFinish": "true",
+#                 "reports": [],
+#                 "type": "policy",
+#                 "policy": {
+#                     "id": 1000007
+#                 },
+#                 "timeoutAction": "rollover",
+#                 "rolloverType": "template",
+#                 "scanningVirtualHosts": "false",
+#                 "classifyMitigatedAge": 0,
+#                 "credentials": [{
+#                         "id": 1000001
+#                     },
+#                     {
+#                         "id": 1000002
+#                     }
+#                 ],
+#                 "ipList": "192.168.69.118",
+#                 "maxScanTime": "unlimited"
+#             }'
+#           displayName: "Run Tenable Step"

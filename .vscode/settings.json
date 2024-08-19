@@ -1,0 +1,11 @@
+{
+    "cx.server": {
+        "url": "https://checkmarx.viettelidc.lab/",
+        "alias": "CxSAST Local",
+        "username": "admin_sast",
+        "password": "Aa1akuX05gKG9NMQao7dDTDJF3bP9YDrmGSYCw==",
+        "project_id": 1,
+        "team_id": 1,
+        "project_name": "cx-easybuggy"
+    }
+}
