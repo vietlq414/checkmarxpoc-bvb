@@ -7,8 +7,6 @@ def lastSuccessfulBuildID  = 0
 node ("jenkins-local-agent"){
     try {
         def MY_REPO = checkout scm
-        def GIT_COMMIT = sh(returnStdout: true, script: 'git rev-parse HEAD')
-        def IMAGE_TAG = GIT_COMMIT.take(7)
 
         stage('Clean Repository') {
             sh """
@@ -20,7 +18,7 @@ node ("jenkins-local-agent"){
         }
 
         stage('Unit Test') {
-            docker.image('maven:3.6.3-jdk-8').inside('-v $HOME/.m2:/root/.m2') {
+            docker.image('maven:3.6.3-jdk-8') {
                 sh """
                     mvn test
                 """
