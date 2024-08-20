@@ -14,7 +14,7 @@ logging:
             RestTemplate: DEBUG
 
 cx-flow:
-  bug-tracker: JIRA
+  bug-tracker: JSON
   branches:
     - main
   filter-severity:
@@ -43,11 +43,11 @@ cx-flow:
   http-read-timeout:
   enabled-vulnerability-scanners:
     - sast
-    - sca
-  # thresholds:
-  #   high: 1
-  #   medium: 2
-  #   low: 3
+    # - sca
+  thresholds:
+    high: 1
+    medium: 2
+    low: 3
 
 checkmarx:
   version: 9.6
@@ -59,7 +59,7 @@ checkmarx:
   incremental: true
   configuration: Default Configuration
   scan-preset: Checkmarx Default
-  team: \CxServer
+  team: CxServer
   url: ${checkmarx.base-url}/cxrestapi
   portal-url: ${checkmarx.base-url}/cxwebinterface/Portal/CxWebService.asmx
   sdk-url: ${checkmarx.base-url}/cxwebinterface/SDK/CxSDKWebService.asmx
@@ -67,18 +67,6 @@ checkmarx:
   sdk-wsdl: ${checkmarx.base-url}/SDK/CxSDKWebService.asmx?wsdl
   exclude-files: "*.tst,*.json"
   exclude-folders: ".git/,test/, cxflow/"
-
-sca:
-  filter-severity:
-    - High
-    - medium
-    - low
-  # filter-score: 7.5
-  # thresholds-severity:
-  #   high: 10
-  #   medium: 5
-  #   low: 10
-  # thresholds-score: 8.5
 
 jira:
   url: XXXXX
@@ -146,7 +134,7 @@ jasypt:
 
 json:
   file-name-format: "[NAMESPACE]-[REPO]-[BRANCH]-[TIME].json"
-  data-folder: "/mnt/d/OneDrive/Learn/vncs/checkmarx/cx-webgoat"
+  data-folder: "."
 
 cx-xml:
   file-name-format: "[NAMESPACE]-[REPO]-[BRANCH]-[TIME].xml"
