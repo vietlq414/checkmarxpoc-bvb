@@ -26,5 +26,10 @@ node ("jenkins-local-agent"){
                 """
             }
         }
+    } catch (e) {
+        currentBuild.result = "FAILED"
+        throw e
+    } finally {
+
     }
 }
