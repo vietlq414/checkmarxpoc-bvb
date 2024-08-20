@@ -7,7 +7,12 @@ def lastSuccessfulBuildID  = 0
 node ("jenkins-local-agent"){
     try {
       def MY_REPO = checkout scm
-      stage('Run Command') {
+      stage('Run Uni Test'){
+        bat """
+          mvn clean test package
+        """
+      }
+      stage('Run SAST Scan with CxFlow') {
         bat """
           java -Xms512m -Xmx1024m \
           -Djava.security.egd="file:/dev/./urandom" \
