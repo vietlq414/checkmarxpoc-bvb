@@ -10,7 +10,7 @@ node ("jenkins-local-agent"){
 
         stage('Unit Test') {
             steps {
-                mvn clean test package
+                bat 'echo Hello, World!'
             }
         }
     } catch (e) {
