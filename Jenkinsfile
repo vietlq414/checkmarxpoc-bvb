@@ -8,20 +8,9 @@ node ("jenkins-local-agent"){
     try {
         def MY_REPO = checkout scm
 
-        stage('Clean Repository') {
-            sh """
-                rm -rf *.zip *.gz
-                rm -rf kics-*
-                rm -rf *.json
-                rm -rf cyclonedx-kics-results.xml junit-kics-results.xml
-            """
-        }
-
         stage('Unit Test') {
-            docker.image('maven:3.6.3-jdk-8') {
-                sh """
-                    mvn test
-                """
+            steps {
+                mvn clean test package
             }
         }
     } catch (e) {
