@@ -59,6 +59,7 @@ checkmarx:
   incremental: true
   configuration: Default Configuration
   scan-preset: Checkmarx Default
+  team: \CxServer
   url: ${checkmarx.base-url}/cxrestapi
   portal-url: ${checkmarx.base-url}/cxwebinterface/Portal/CxWebService.asmx
   sdk-url: ${checkmarx.base-url}/cxwebinterface/SDK/CxSDKWebService.asmx
