@@ -50,11 +50,11 @@ cx-flow:
   #   low: 3
 
 checkmarx:
-  version: 9.0
-  client-id: resource_owner_client
+  version: 9.6
+  username: sast_admin
+  password: Vncs@@321!!!
   client-secret: 014DF517-39D1-4453-B7B3-9930C563627C
-  scope: access_control_api sast_rest_api
-  base-url: https://cxapactrial.checkmarx.net/
+  base-url: https://checkmarx.viettelidc.lab/
   multi-tenant: true
   incremental: true
   configuration: Default Configuration

@@ -37,7 +37,7 @@ node ("jenkins-local-agent"){
     bat """
       java -Xms512m -Xmx1024m ^
       -Djavax.net.debug=ssl,handshake ^
-      -jar "C:\\Program Files\\cxflow\\cx-flow-1.7.03.jar" --spring.config.location=./application.yml ^
+      -jar "C:\\Software\\cxflow\\cx-flow.jar" --spring.config.location=C:\\Software\\cxflow\\application.yml ^
       --scan ^
       --cx-project="cx-demo-webgoat" ^
       --app="cx-demo-webgoat-master" ^
