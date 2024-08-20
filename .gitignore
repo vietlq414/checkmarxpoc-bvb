@@ -6,7 +6,10 @@ logs/
 server-work/
 *.swp
 *.log
+*.zip
+*.bak
 /.extract
 /.scannerwork
 /.idea/
 /easybuggy.iml
+runCxFlow.bat

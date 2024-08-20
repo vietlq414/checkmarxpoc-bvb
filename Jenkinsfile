@@ -11,15 +11,14 @@ node ("jenkins-local-agent"){
     stage('Chekcmarx CxSAST scan with CxFlow'){
       bat """
         java -Xms512m -Xmx1024m ^
-        -Djavax.net.debug=ssl,handshake ^
-        -jar "C:\\Software\\cxflow\\cx-flow.jar" --spring.config.location=application.yml ^
+        -jar "C:\\Software\\cxflow\\cx-flow.jar" --spring.config.location="application.yml" ^
         --scan ^
         --cx-project="checkmarxpoc-bvb" ^
         --app="checkmarxpoc-bvb-main" ^
         --branch="main" ^
         --repo-name="checkmarxpoc-bvb" ^
-        --namespace="security" ^
         --cx-flow.break-build="true" ^
+        --cx-flow.bug-tracker=Json  ^
         --f=.
       """
     }
